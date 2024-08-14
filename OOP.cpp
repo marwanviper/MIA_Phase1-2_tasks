@@ -1,233 +1,318 @@
 #include <bits/stdc++.h>
 using namespace std ;
-int turn = 0;
-class weapon{
-    private:
-        int uses;
-        int energy;
-        string name;
-    public:
-        weapon(string name,int uses,int energy):name(name),uses(uses),energy(energy){
-        }
-        void setUses(int uses){
-            if(this->uses < uses || uses < -1)
-            {
-                cout << "error";
-                return;
-            }
-            this->uses = uses;
-        }
-        int getUses(){
-            return uses;
-        }
-        int getEnergy(){
-            return energy;
-        }
-        string getName(){
-            return name;
-        }
-};
-class attackWeapon : public weapon{
-    private:
-        int damage;
-    public:
-        attackWeapon(int damage,string name,int uses,int energy):damage(damage),weapon(name,uses,energy){
-        }
-        int getDamage(){
-            return damage;
-        }
-
-};
-class shield : public weapon{
-    private:
-        int shieldValue;
-    public:
-        shield(int shieldValue,string name,int uses,int energy):shieldValue(shieldValue),weapon(name,uses,energy){
-        }
-        int getShieldValue(){
-            return shieldValue;
-        }
-};
-
+float spcialDefend = 1;
+// Weapons for Batman and Joker
+//Weapon class
 class character{
     private:
         int health;
         int energy;
-        attackWeapon* atWeapon;
-        shield* dfWeapon;
+        int reduc;
+        string name;
     public:
-        character(){
-            health = 100;
-            energy = 500;
+        character(string n):health(100),energy(500),name(n){}
+        virtual void attack(character* defender) = 0;
+        virtual int defend(int damage) = 0;
+        virtual void useShield() = 0;
+        void redHealth(int blood) {health -= blood;}
+        void redEnergy(int drain) {energy -= drain;}
+        int getHealth() {return health;}
+        int getEnergy() {return energy;}
+        float getRed() {return (float)reduc/100.0;}
+        void setRed(int red) {reduc = red;}
+        bool isAlive() { return health > 0; }
+        string getName() { return name; }
+};
+class weapon{
+    private:
+        int damage;
+        int energyCost;
+        int uses;
+        string name;
+    public:
+        weapon(int damage,string name,int uses,int energyCost):name(name),uses(uses),energyCost(energyCost),damage(damage){}
+        virtual void use(character* user,character* opponent) = 0;
+        int haveEnergy(character* user){return user->getEnergy() >= energyCost;}
+        int getDamage(){return damage;}
+        int getEnergyCost(){return energyCost;}
+        string getName(){return name;}
+        void Used(){uses -= 1;}
+        bool couldUse(){return uses > 0 || uses == -1; }
+};
+class NoneWp : public weapon{
+    public:
+        NoneWp():weapon(0,"None",-1,0){}
+        void Used (){}
+        void use(character* user,character* opponent){
+            cout << user->getName() << " attacks with " << getName() << " causing " << getDamage()<< " damage." << endl;
+            Used();
         }
-        void attack(character* defender)
-        {
-            if(atWeapon->getUses() != -1 && defender->dfWeapon->getUses() != -1){
-                atWeapon->setUses(atWeapon->getUses()-1);
-                defender->dfWeapon->setUses(defender->dfWeapon->getUses()-1);
+};
+//Batman Weapons classes
+class Batarang : public weapon{
+    public:
+        Batarang():weapon(11,"Batarang",-1,50){}
+        void Used (){}
+        void use(character* user,character* opponent){
+            user->redEnergy(getEnergyCost());
+            opponent->redHealth(getDamage()-opponent->defend(getDamage()));
+            cout << user->getName() << " attacks with " << getName() << " causing " << getDamage()-opponent->defend(getDamage()) << " damage." << endl;
+            Used();
+        }
+};
+class GrappleGun : public weapon{
+    public:
+        GrappleGun():weapon(18,"GrappleGun",5,88){}
+        void use(character* user,character* opponent){
+            user->redEnergy(getEnergyCost());
+            opponent->redHealth(getDamage()-opponent->defend(getDamage()));
+            cout << user->getName() << " attacks with " << getName() << " causing " << getDamage()-opponent->defend(getDamage()) << " damage." << endl;
+            Used();
+        }
+};
+class ExplosiveGel : public weapon{
+    public:
+        ExplosiveGel():weapon(10,"ExplosiveGel",3,92){}
+        void use(character* user,character* opponent){
+            user->redEnergy(getEnergyCost());
+            opponent->redHealth(getDamage()-opponent->defend(getDamage()));
+            spcialDefend = 0.2;
+            cout << user->getName() << " attacks with " << getName() << " causing " << getDamage()-opponent->defend(getDamage()) << " damage." << endl;
+            Used();
+        }
+};
+class Batclaw : public weapon{
+    public:
+        Batclaw():weapon(20,"Batclaw",1,120){}
+        void use(character* user,character* opponent){
+            user->redEnergy(getEnergyCost());
+            opponent->redHealth(getDamage());
+            cout << user->getName() << " attacks with " << getName() << " causing " << getDamage() << " damage." << endl;
+            Used();
+        }
+};
+//Joker Weapons classes
+class JoyBuzzer : public weapon{
+    public:
+        JoyBuzzer():weapon(8,"JoyBuzzer",-1,40){}
+        void Used (){}
+        void use(character* user,character* opponent){
+            user->redEnergy(getEnergyCost());
+            opponent->redHealth(getDamage()-opponent->defend(getDamage()));
+            cout << user->getName() << " attacks with " << getName() << " causing " << getDamage()-opponent->defend(getDamage()) << " damage." << endl;
+            Used();
+        }
+};
+class LaughingGas : public weapon{
+    public:
+        LaughingGas():weapon(13,"LaughingGas",8,56){}
+        void use(character* user,character* opponent){
+            user->redEnergy(getEnergyCost());
+            opponent->redHealth(getDamage()-opponent->defend(getDamage()));
+            cout << user->getName() << " attacks with " << getName() << " causing " << getDamage()-opponent->defend(getDamage()) << " damage." << endl;
+            Used();
+        }
+};
+class AcidFlower : public weapon{
+    public:
+        AcidFlower():weapon(22,"AcidFlower",3,100){}
+        void use(character* user,character* opponent){
+            user->redEnergy(getEnergyCost());
+            opponent->redHealth(getDamage()-opponent->defend(getDamage()));
+            cout << user->getName() << " attacks with " << getName() << " causing " << getDamage()-opponent->defend(getDamage()) << " damage." << endl;
+            Used();
+        }
+};
+class shield {
+    private:
+        int damageReduction;
+        int energyCost;
+        int uses;
+        string name;
+    public:
+        shield(int damageReduction,string name,int uses,int energyCost):name(name),uses(uses),energyCost(energyCost),damageReduction(damageReduction){}
+        int haveEnergy(character* user){return user->getEnergy() >= energyCost;}
+        int getDamageReduction(){return damageReduction;}
+        int getEnergyCost(){return energyCost;}
+        void use(character* user){user->redEnergy(getEnergyCost());};
+        string getName(){return name;}
+        void Used(){uses -= 1;}
+        bool couldUse(){return uses > 0 || uses == -1; }
+};
+//difine weapon variables
+Batarang batarang;
+GrappleGun grappleGun;
+ExplosiveGel explosiveGel;
+Batclaw batclaw;
+JoyBuzzer joyBuzzer;
+LaughingGas laughingGas;
+AcidFlower acidFlower;
+NoneWp noneWp;
+shield CapeGlide = shield(40,"CapeGlide",-1,20);
+shield SmokePellet = shield(90,"SmokePellet",2,50);
+shield TrickShield = shield(32,"TrickShield",-1,15);
+shield RubberChicken = shield(80,"RubberChicken",3,40);
+shield NoneSH = shield(0,"None",-1,0);
+//Batman the dark Night
+class Batman : public character{
+    public:
+        Batman():character("Batman"){}
+        void attack(character* defender) {
+            spcialDefend =1;
+            cout << "Choose Batman's weapon:\n1. Batarang\n2. Grapple Gun\n3. Explosive Gel\n4. Batclaw\n";
+            int choice;
+            weapon* Weapon;
+            while(true){
+                cin >> choice;
+                switch (choice) {
+                    case 1: Weapon = &batarang; break;
+                    case 2: Weapon = &grappleGun; break;
+                    case 3: Weapon = &explosiveGel; break;
+                    case 4: Weapon = &batclaw; break;
+                    default: Weapon = &noneWp; break;//fiXXXXXXXXXXX
+                }
+                if(Weapon->haveEnergy(this)&&Weapon->couldUse())
+                {
+                    break;
+                }
+                else if(Weapon->haveEnergy(this))
+                {
+                    cout<<"zero uses left!"<<endl;
+                }
+                else{
+                    cout<<"no enough energy"<<endl;
+                }
+                cout << "pick again"<<endl; 
             }
-            else if(atWeapon->getUses() != -1){
-                atWeapon->setUses(atWeapon->getUses());
-                defender->dfWeapon->setUses(defender->dfWeapon->getUses()-1);
-            }
-            else if(defender->dfWeapon->getUses() != -1){
-                atWeapon->setUses(atWeapon->getUses()-1);
-                defender->dfWeapon->setUses(defender->dfWeapon->getUses());
-            }
-            else{
-                atWeapon->setUses(atWeapon->getUses());
-                defender->dfWeapon->setUses(defender->dfWeapon->getUses());
-            }
-            energy -= atWeapon->getEnergy();
-            defender->setEnergy(defender->getEnergy()-defender->dfWeapon->getEnergy());
-            if(atWeapon->getName() != "Batclaw")
-            {
-                defender->setHealth(defender->getHealth()-atWeapon->getDamage()+defender->defend(atWeapon->getDamage()));
-            }
-            else{
-                defender->setHealth(defender->getHealth()-atWeapon->getDamage());
-            }
+            defender->useShield();
+            Weapon->use(this, defender);
+        }
+        int defend(int damage) {
+            return (int)((float)damage*getRed());
+        }
+        void useShield() {
+            cout << "Choose Batman's shield:\n1. Cape Glide\n2. Smoke Pellet\n";
+            int choice;
+            shield* Shield;
+            while(true){
+                cin >> choice;
 
-        }
-        int defend(int damage)
-        {
-            return (damage*((float)dfWeapon->getShieldValue()/100.0));
-        }
-        void setHealth(int health){
-            if (health > this->health)
-            {
-                cout << "error health cant increase!!";
-                return;
+                switch (choice) {
+                    case 1: Shield = &CapeGlide; break;
+                    case 2: Shield = &SmokePellet; break;
+                    default: Shield = &NoneSH; break;
+                }
+                if(Shield ->haveEnergy(this)&&Shield->couldUse())
+                {
+                    break;
+                }
+                else if(Shield->haveEnergy(this))
+                {
+                    cout<<"zero uses left!"<<endl;
+                }
+                else{
+                    cout<<"no enough energy"<<endl;
+                }
+                cout << "pick again"<<endl; 
             }
-            this->health = health;
+            Shield->use(this);
+            setRed(Shield->getDamageReduction());
         }
-        void setEnergy(int energy){
-            if (energy > this->energy)
-            {
-                cout << "error energy cant increase!!";
-                return;
+};
+class Joker : public character{
+    public:
+        Joker():character("Joker"){}
+        void attack(character* defender) {
+            cout << "Choose Joker's weapon:\n1. Joy Buzzer\n2. Laughing Gas\n3. Acid Flower\n";
+            int choice;
+            weapon* Weapon;
+            while(true){
+                cin >> choice;
+                switch (choice) {
+                    case 1: Weapon = &joyBuzzer; break;
+                    case 2: Weapon = &laughingGas; break;
+                    case 3: Weapon = &acidFlower; break; 
+                    default: Weapon = &noneWp; break;
+                }
+                if(Weapon->haveEnergy(this)&&Weapon->couldUse())
+                {
+                    break;
+                }
+                else if(Weapon->haveEnergy(this))
+                {
+                    cout<<"zero uses left!"<<endl;
+                }
+                else{
+                    cout<<"no enough energy"<<endl;
+                }
+                cout << "pick again"<<endl; 
             }
-            this->energy = energy;
+            defender->useShield();
+            Weapon->use(this, defender);
         }
-        void setDfWeapon(shield* dfWeapon){
-            if (!dfWeapon->getUses())
-            {
-                cout << "error you cant use this weapon";
-                return;
+        int defend(int damage) {
+            return (int)((float)damage*getRed()*spcialDefend);
+        }
+        void useShield() {
+            cout << "Choose Joker's shield:\n1. Trick Shield\n2. Rubber Chicken\n";
+            int choice;
+            shield* Shield;
+            while(true){
+                cin >> choice;
+
+                switch (choice) {
+                    case 1: Shield =&TrickShield; break;
+                    case 2: Shield = &RubberChicken; break;
+                    default: Shield = &NoneSH; break;
+                }
+                if(Shield ->haveEnergy(this)&&Shield->couldUse())
+                {
+                    break;
+                }
+                else if(Shield->haveEnergy(this))
+                {
+                    cout<<"zero uses left!"<<endl;
+                }
+                else{
+                    cout<<"no enough energy"<<endl;
+                }
+                cout << "pick again"<<endl; 
             }
-            this->dfWeapon = dfWeapon;
-        }
-        void setAtWeapon(attackWeapon* atWeapon ){
-            if (!atWeapon->getUses())
-            {
-                cout << "error you cant use this weapon";
-                return;
-            }
-            this->atWeapon = atWeapon;
-        }
-        int getHealth(){
-            return health;
-        }
-        int getEnergy(){
-            return energy;
-        }
-        string getDfWeaponName(){
-            return dfWeapon->getName();
-        }
-        string getAtWeaponName(){
-            return atWeapon->getName();
+            Shield->use(this);
+            setRed(Shield->getDamageReduction());
         }
 };
 
-attackWeapon Batman_weapon[] = {attackWeapon(11,"Batarang",-1,50),attackWeapon(18,"GrappleGun",5,88),attackWeapon(10,"ExplosiveGel",3,92),attackWeapon(20,"Batclaw",1,120)};
-attackWeapon joker_weapon[] = {attackWeapon(8,"JoyBuzzer",-1,40),attackWeapon(13,"LaughingGas",8,56),attackWeapon(22,"AcidFlower",3,100)};
-shield Batman_shield[] = {shield(40,"CapeGlide",-1,20),shield(90,"SmokePellet",2,50)};
-shield joker_shield[] = {shield(32,"TrickShield",-1,15),shield(80,"RubberChicken",3,40)};
-void WeaponChoosing(character* batman , character* joker)
-{
-    int n1 = 0 ;
-    int n2 = 0 ;
-    do
-    {
-        cout << "choose your weapon batman" << endl;
-        cin >> n1;
-        if(!turn){
-            if(n1 < 4 && batman->getEnergy()>Batman_weapon[n1].getEnergy() && Batman_weapon[n1].getUses() != 0){
-                batman->setAtWeapon(&Batman_weapon[n1]);
-            }
-            else{
-                cout << "pick again" << endl;
-                continue;
-            }
-        }
-        else{
-            if(n1 < 2 && batman->getEnergy()>Batman_shield[n1].getEnergy() && Batman_shield[n1].getUses() != 0){
-                batman->setDfWeapon(&Batman_shield[n1]);
-            }
-            else{
-                cout << "pick again" << endl;
-                continue;
-            }
-        }
-        cout << "choose your weapon joker" << endl;
-        cin >> n2;
-        if(turn){
-            if(n2 < 3 && joker->getEnergy()>joker_weapon[n2].getEnergy() && joker_weapon[n2].getUses() != 0){
-                joker->setAtWeapon(&joker_weapon[n2]);
-                break;
-            }
-            else{
-                cout << "pick again" << endl;
-                continue;
-            }
-        }
-        else{
-            if(n2 < 2 &&joker->getEnergy()>joker_shield[n2].getEnergy() && joker_shield[n2].getUses() != 0){
-                joker->setDfWeapon(&joker_shield[n2]);
-                break;
-            }
-            else{
-                cout << "pick again" << endl;
-                continue;
-            }
-        }
-    } while (1);
-    
-}
+// main function ===================================
 int main()
 {
-    character batman ;
-    character joker ;
-    while(1){
-    WeaponChoosing(&batman , &joker);
-    if(!turn){
-        cout << "The character performing the attack." << endl;
-        cout << "batman using " << batman.getAtWeaponName() << endl;
-        cout << "joker using " << joker.getDfWeaponName() << endl;
-        batman.attack(& joker);
-        cout << "joker HP is " << joker.getHealth() << endl;
-        cout << "batman HP is " << batman.getHealth() << endl;
+    Batman batman;
+    Joker joker;
+    character *currentAttacker = &batman;
+    character *currentDefender = &joker;
+    
+    while (batman.isAlive() && joker.isAlive() && (batman.getEnergy()>= 20 || joker.getEnergy()>= 15)) {
+        cout << "Batman Health: " << batman.getHealth() << ", Energy: " << batman.getEnergy() << endl;
+        cout << "Joker Health: " << joker.getHealth() << ", Energy: " << joker.getEnergy() << endl;
+        currentAttacker->attack(currentDefender);
+        swap(currentAttacker, currentDefender);
     }
-    else if(turn){
-        cout << "The character performing the attack." << endl;
-        cout << "joker using " << joker.getAtWeaponName() << endl;
-        cout << "batman using " << batman.getDfWeaponName() << endl;
-        joker.attack(& batman);
-        cout << "joker HP is " << joker.getHealth() << endl;
-        cout << "batman HP is " << batman.getHealth() << endl;
-    }
-    if(batman.getHealth() <= 0 )
+    if(batman.isAlive() && joker.isAlive())
     {
-        cout <<"joker win";
-        break;
+        cout << "Draw!!" << endl;
     }
-    else if (joker.getHealth() <= 0)
-    {
-        cout <<"batman win";
-        break;
+    else if (batman.isAlive() ) {
+        cout << "Batman wins!" << endl;
+    } else {
+        cout << "Joker wins!" << endl;
     }
-    turn = !turn;
-    }
-
-    return 0;
-}
+    
+    cout << "Final State: " << endl;
+    cout << "Batman Health: " << batman.getHealth() << ", Energy: " << batman.getEnergy() << endl;
+    cout << "Joker Health: " << joker.getHealth() << ", Energy: " << joker.getEnergy() << endl;
+    
+    return 0;                    
+}                                                            
+  
+  
+  
