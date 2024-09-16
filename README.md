@@ -43,8 +43,6 @@ Neural Networks are a class of machine learning algorithms inspired by the way t
 
 ## Comparison of Neural Network Implementations
 
-```markdown
-# Comparison of Neural Network Implementations
 
 ## 1. Ease of Use
 
